@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from pathlib import Path
+from typing import Optional
 
 ENV_FILE = Path(__file__).parent.parent / ".env"
 
@@ -7,7 +8,7 @@ ENV_FILE = Path(__file__).parent.parent / ".env"
 class Settings(BaseSettings):
     APP_NAME: str
     APP_VERSION: str
-    OPENAI_API_KEY: str
+    OPENAI_API_KEY: Optional[str] = ""
 
     FILE_ALLOWED_TYPES: list[str]
     FILE_MAX_SIZE: int
@@ -16,9 +17,24 @@ class Settings(BaseSettings):
     MONGODB_URL: str
     MONGODB_DATABASE: str
 
+    GENERATION_BACKEND: str
+    EMBEDDING_BACKEND: str
+
+    OPENAI_API_KEY: Optional[str] = ""
+    OPENAI_API_URL: Optional[str] = ""
+    COHERE_API_KEY: Optional[str] = ""
+
+    GENERATION_MODEL_ID: Optional[str] = ""
+    EMBEDDING_MODEL_ID: Optional[str] = ""
+    EMBEDDING_MODEL_SIZE: Optional[int] = 0
+
+    DEFAULT_INPUT_MAX_CHARACTERS: Optional[int] = 0
+    DEFAULT_OUTPUT_MAX_CHARACTERS: Optional[int] = 0
+    DEFAULT_GENERATION_TEMPERATURE: Optional[float] = 0.0
+
     class Config:
         env_file = ENV_FILE
 
 
 def get_settings():
-    return Settings()  # type: ignore[call-arg]
+    return Settings()
