@@ -30,7 +30,7 @@ class ProjectModel(BaseDataModel):
                 )  # create indexes in the collection (from motor)
 
     async def create_project(self, project: Project) -> Project:
-        result = await self.collection.insert_one(project.dict(by_alias=True, exclude_unset=True))  # insert_one and some other methods here is from motor which used to make changes in mongodb
+        result = await self.collection.insert_one(project.model_dump(by_alias=True, exclude_unset=True))
         project.id = result.inserted_id
         return project
 
@@ -38,12 +38,11 @@ class ProjectModel(BaseDataModel):
         record = await self.collection.find_one({"project_id": project_id})
 
         if record is None:
-            # Project not found, create a new one
-            project = Project(project_id=project_id)  # give project schema input which is id
-            project = await self.create_project(project=project)  # call create project method and give it the above line as input
+            project = Project.model_validate({"project_id": project_id})
+            project = await self.create_project(project=project)
             return project
 
-        project = Project(**record)
+        project = Project.model_validate(record)
         return project
 
     async def get_all_projects(self, page: int = 1, page_size: int = 10):
@@ -63,8 +62,6 @@ class ProjectModel(BaseDataModel):
         projects = []
 
         async for documents in cursor:
-            projects.append(
-                Project(**documents)  # convert each record (dict) to a Project object and add to the list
-            )
+            projects.append(Project.model_validate(documents))
 
         return projects, total_pages

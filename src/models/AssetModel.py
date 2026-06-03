@@ -2,6 +2,7 @@ from .BaseDataModel import BaseDataModel
 from .db_schemas import Asset
 from .enums import DataBaseEnums
 from bson import ObjectId
+from typing import Union
 
 
 class AssetModel(BaseDataModel):
@@ -29,25 +30,22 @@ class AssetModel(BaseDataModel):
                 )
 
     async def create_asset(self, asset: Asset) -> Asset:
-        result = await self.collection.insert_one(asset.dict(by_alias=True, exclude_unset=True))
+        result = await self.collection.insert_one(asset.model_dump(by_alias=True, exclude_unset=True))
         asset.id = result.inserted_id
         return asset
 
-    async def get_all_project_assets(self, asset_project_id: str, asset_type: str):
+    async def get_all_project_assets(self, asset_project_id: Union[ObjectId, str], asset_type: str):
         records = await self.collection.find({
             "asset_project_id": ObjectId(asset_project_id) if isinstance(asset_project_id, str) else asset_project_id,
             "asset_type": asset_type,
         }).to_list(length=None)
-        return [
-            Asset(**record)
-            for record in records
-        ]
+        return [Asset.model_validate(record) for record in records]
 
-    async def get_asset_record(self, asset_project_id: str, asset_name: str):
+    async def get_asset_record(self, asset_project_id: Union[ObjectId, str], asset_name: str):
         record = await self.collection.find_one({
             "asset_project_id": ObjectId(asset_project_id) if isinstance(asset_project_id, str) else asset_project_id,
             "asset_name": asset_name,
         })
         if record:
-            return Asset(**record)
+            return Asset.model_validate(record)
         return None

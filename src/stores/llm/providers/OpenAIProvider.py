@@ -1,8 +1,8 @@
-from stores.llm.LLMInterface import LLMInterface
+from ..LLMInterface import LLMInterface
 from openai import OpenAI
 from typing import Optional, List
 import logging
-from stores.llm.LLMEnums import OpenAIEnums
+from ..LLMEnums import OpenAIEnums
 
 class OpenAIProvider(LLMInterface):
 
@@ -24,7 +24,7 @@ class OpenAIProvider(LLMInterface):
 
         self.client = OpenAI(api_key=self.api_key, 
                              base_url=self.api_url)
-        
+        self.enum=OpenAIEnums
         self.logger = logging.getLogger(__name__) # Initialize logger with file name 
 
 

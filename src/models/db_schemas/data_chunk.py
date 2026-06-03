@@ -22,3 +22,8 @@ class DataChunk(BaseModel):
                 "unique": False,  # this ensures that the chunk_project_id is unique in the collection
             }
         ]
+    
+class RetrievedDocument(BaseModel):
+    text: str
+    score: float
+    

@@ -23,6 +23,9 @@ class DataController(BaseController):  # inheritance from BaseController to acce
         return True, ResponseSignals.FILE_VALIDATED_SUCCESS.value
 
     def generate_unique_filepath(self, orig_file_name: str | None, project_id: str):
+        if orig_file_name is None:
+            raise ValueError("File name cannot be None")
+
         random_key = self.generate_random_string()  # Generate a random string to ensure uniqueness
         project_path = ProjectController().get_project_path(project_id=project_id)  # Get the project path using the ProjectController
 

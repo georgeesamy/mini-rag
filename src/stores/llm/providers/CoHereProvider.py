@@ -1,5 +1,5 @@
-from stores.llm.LLMInterface import LLMInterface
-from stores.llm.LLMEnums import CoHereEnums, DocumentTypeEnums
+from ..LLMInterface import LLMInterface
+from ..LLMEnums import CoHereEnums, DocumentTypeEnums
 from typing import Optional, List
 import logging
 import cohere
@@ -19,10 +19,10 @@ class CoHereProvider(LLMInterface):
         self.generation_model_id = None
 
         self.set_embedding_model_id = None
-        self.embbedding_size = None
+        self.embedding_size = None
 
         self.client = cohere.Client(api_key=self.api_key)
-        
+        self.enum=CoHereEnums        
         self.logger = logging.getLogger(__name__) # Initialize logger with file name 
 
 

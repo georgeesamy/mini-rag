@@ -1,3 +1,4 @@
+from typing import Optional
 from .BaseDataModel import BaseDataModel
 from .db_schemas import DataChunk
 from .enums import DataBaseEnums
@@ -31,30 +32,38 @@ class ChunkModel(BaseDataModel):
                 )  # create indexes in the collection (from motor)
 
     async def create_chunk(self, chunk: DataChunk):
-        result = await self.collection.insert_one(chunk.dict(by_alias=True, exclude_unset=True))  # insert_one and some other methods here is from motor which used to make changes in mongodb
+        result = await self.collection.insert_one(chunk.model_dump(by_alias=True, exclude_unset=True))
         chunk._id = result.inserted_id
         return chunk
 
     async def get_chunk(self, chunk_id: str):
         record = await self.collection.find_one({
             "_id": ObjectId(chunk_id),
-        })  # mongodb uses _id as the default primary key field, and it is of type ObjectId
+        })
 
         if record is None:
             return None
 
-        return DataChunk(**record)  # to convert the record from dictionary to a DataChunk object
+        return DataChunk.model_validate(record)
 
-    async def insert_many_chunks(self, chunks: list, batch_size: int = 100):
+    async def insert_many_chunks(self, chunks: list, batch_size: int = 100) -> int:
         for i in range(0, len(chunks), batch_size):
             batch = chunks[i:i + batch_size]
-            operations = [InsertOne(chunk.dict(by_alias=True, exclude_unset=True)) for chunk in batch]  # create a list of InsertOne operations for each chunk in the batch
-            await self.collection.bulk_write(operations)  # execute the bulk write operation to insert the batch of chunks into the database
-
-            return len(chunks)
+            operations = [InsertOne(chunk.model_dump(by_alias=True, exclude_unset=True)) for chunk in batch]
+            await self.collection.bulk_write(operations)
+        return len(chunks)
 
     async def delete_chunk_by_project_id(self, project_id: ObjectId):
         result = await self.collection.delete_many({
             "chunk_project_id": project_id,
         })
         return result.deleted_count
+
+
+    async def get_project_chunks(self, project_id: Optional[ObjectId], page_no: int = 1, page_size: int = 50):
+        result = await self.collection.find({
+            "chunk_project_id": project_id,
+        }).skip(
+            (page_no - 1) * page_size).limit(page_size).to_list(length=None)
+        
+        return [DataChunk.model_validate(record) for record in result]
